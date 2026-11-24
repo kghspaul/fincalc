@@ -107,7 +107,7 @@
             <div>
               <label for="r-amount" class="block text-sm font-medium text-slate-700 mb-1">退休時可用於投資金額（萬元）</label>
               <div class="relative">
-                <input id="r-amount" type="number" step="10" min="0" value="500" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
+                <input id="r-amount" type="text" inputmode="decimal" data-comma step="10" min="0" value="500" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
                 <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-medium">萬元</span>
               </div>
             </div>
@@ -168,7 +168,7 @@
 
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
             <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80">
-              <p class="text-xs text-slate-500">實質年化報酬率</p>
+              <p class="text-xs text-slate-500">實質年化報酬率<a href="#note-1" class="text-emerald-600 font-semibold hover:underline"><sup>註1</sup></a></p>
               <p id="r-real-rate" class="text-xl font-bold text-emerald-600 mt-1">11.65%</p>
             </div>
             <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80">
@@ -203,12 +203,27 @@
           <span>重要說明與風險緩衝提醒</span>
         </div>
         <p>說明：這裡計算的是考慮通膨後的實質報酬率，所以算出來的金額代表的是「等同於退休當下（第1年）購買力」的實質金額。例如：阿良設定45歲退休，100歲登出，通膨3%，算出來是5萬元，則表示從 45 歲到 100 歲這 55 年間，每個月都能擁有相當於退休當年5萬元的生活水準。</p>
+        <p class="text-xs text-slate-500">計算假設：每月提領於<strong>月底</strong>發生（普通年金），並以實質報酬率折算。</p>
         <p class="font-semibold text-amber-900">💡 建議留2年的生活費放定存，碰到大跌時可以先不賣股票，解定存支應生活費。</p>
+      </div>
+
+      <!-- 註1 -->
+      <div id="note-1" class="bg-white border border-slate-200/80 rounded-2xl p-5 sm:p-6 space-y-2 text-sm text-slate-700 leading-relaxed">
+        <h3 class="font-bold text-navy-900">註1：實質年化報酬率</h3>
+        <p>實質年化報酬率是扣掉通膨後，錢「真正變多少購買力」的報酬率。</p>
+        <p>計算公式：<strong>(1 ＋ 預期年化報酬率) ÷ (1 ＋ 通膨率) − 1</strong></p>
+        <p>例如：報酬率 15%、通膨 3%，(1.15 ÷ 1.03) − 1 ≈ <strong class="text-emerald-700">11.65%</strong></p>
+        <p>為什麼不是 15% − 3% = 12%？因為通膨不只會侵蝕本金，也會侵蝕你賺到的獲利。直接相減只是近似值，報酬率與通膨越高，誤差越大。</p>
+        <p>本計算機使用實質報酬率，所以算出的每月被動收入，是「相當於退休當年購買力」的金額。</p>
       </div>
     </section>
 
     <!-- ==================== TAB 2: 定期定額與單筆目標試算 ==================== -->
     <section id="tab-goal" class="tab-panel hidden space-y-6">
+      <div class="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-4 text-sm text-slate-700 leading-relaxed">
+        <span class="font-bold text-amber-900">計算假設：</span>每年存款皆於<strong>年底投入</strong>，當年存款不計當年利息（當年累積身價 ＝ 前一年餘額 × (1 ＋ 報酬率) ＋ 當年存款）。若實際為年初或每月投入，結果會略高於本頁數字。
+      </div>
+
       <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
 
         <!-- Case 1: 單筆投資目標試算 -->
@@ -224,7 +239,7 @@
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label for="g1-principal" class="block text-xs font-medium text-slate-600 mb-1">起始資金（元）</label>
-              <input id="g1-principal" type="number" step="100000" min="0" value="1000000" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+              <input id="g1-principal" type="text" inputmode="decimal" data-comma step="100000" min="0" value="1,000,000" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
             </div>
             <div>
               <label for="g1-rate" class="block text-xs font-medium text-slate-600 mb-1">預期年報酬率（%）</label>
@@ -232,7 +247,7 @@
             </div>
             <div>
               <label for="g1-target" class="block text-xs font-medium text-slate-600 mb-1">目標金額（元）</label>
-              <input id="g1-target" type="number" step="1000000" min="0" value="20000000" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+              <input id="g1-target" type="text" inputmode="decimal" data-comma step="1000000" min="0" value="20,000,000" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
             </div>
           </div>
 
@@ -287,11 +302,11 @@
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div>
               <label for="g2-principal" class="block text-xs font-medium text-slate-600 mb-1">起始資金（元）</label>
-              <input id="g2-principal" type="number" step="10000" min="0" value="0" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+              <input id="g2-principal" type="text" inputmode="decimal" data-comma step="10000" min="0" value="0" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
             </div>
             <div>
               <label for="g2-monthly" class="block text-xs font-medium text-slate-600 mb-1">每月投資（元）</label>
-              <input id="g2-monthly" type="number" step="1000" min="0" value="10000" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+              <input id="g2-monthly" type="text" inputmode="decimal" data-comma step="1000" min="0" value="10,000" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
             </div>
             <div>
               <label for="g2-rate" class="block text-xs font-medium text-slate-600 mb-1">年報酬率（%）</label>
@@ -299,7 +314,7 @@
             </div>
             <div>
               <label for="g2-target" class="block text-xs font-medium text-slate-600 mb-1">目標金額（元）</label>
-              <input id="g2-target" type="number" step="1000000" min="0" value="10000000" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+              <input id="g2-target" type="text" inputmode="decimal" data-comma step="1000000" min="0" value="10,000,000" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
             </div>
           </div>
 
@@ -353,6 +368,10 @@
 
     <!-- ==================== TAB 3: 投資策略 PK ==================== -->
     <section id="tab-pk" class="tab-panel hidden space-y-6">
+      <div class="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-4 text-sm text-slate-700 leading-relaxed">
+        <span class="font-bold text-amber-900">計算假設：</span>存款與單筆投入皆於該歲<strong>年底投入</strong>，投入當年不計利息（累積身價 ＝ 前一年餘額 × (1 ＋ 報酬率) ＋ 當年投入）。起始／結束年齡限定在 25～65 歲之間。
+      </div>
+
       <!-- Scenario Switcher & Common Controls -->
       <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 space-y-4">
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -412,7 +431,7 @@
           <div class="grid grid-cols-2 gap-2.5 text-xs">
             <div>
               <label class="text-slate-500 block mb-1">初始資金</label>
-              <input id="p-init" type="number" step="5000" value="15000" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 font-semibold text-slate-800" />
+              <input id="p-init" type="text" inputmode="decimal" data-comma step="5000" value="15,000" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 font-semibold text-slate-800" />
             </div>
             <div>
               <label class="text-slate-500 block mb-1">投入方式</label>
@@ -431,7 +450,7 @@
             </div>
             <div class="col-span-2">
               <label class="text-slate-500 block mb-1">每年／單筆投入金額（元）</label>
-              <input id="p-amount" type="number" step="10000" value="180000" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 font-semibold text-slate-800" />
+              <input id="p-amount" type="text" inputmode="decimal" data-comma step="10000" value="180,000" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 font-semibold text-slate-800" />
             </div>
           </div>
         </div>
@@ -447,7 +466,7 @@
           <div class="grid grid-cols-2 gap-2.5 text-xs">
             <div>
               <label class="text-slate-500 block mb-1">初始資金</label>
-              <input id="a-init" type="number" step="5000" value="0" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 font-semibold text-slate-800" />
+              <input id="a-init" type="text" inputmode="decimal" data-comma step="5000" value="0" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 font-semibold text-slate-800" />
             </div>
             <div>
               <label class="text-slate-500 block mb-1">投入方式</label>
@@ -466,7 +485,7 @@
             </div>
             <div class="col-span-2">
               <label class="text-slate-500 block mb-1">每年／單筆投入金額（元）</label>
-              <input id="a-amount" type="number" step="10000" value="180000" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 font-semibold text-slate-800" />
+              <input id="a-amount" type="text" inputmode="decimal" data-comma step="10000" value="180,000" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 font-semibold text-slate-800" />
             </div>
           </div>
         </div>
@@ -485,7 +504,7 @@
           <div id="py-inputs" class="grid grid-cols-2 gap-2.5 text-xs">
             <div>
               <label class="text-slate-500 block mb-1">初始資金</label>
-              <input id="py-init" type="number" step="5000" value="0" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 font-semibold text-slate-800" />
+              <input id="py-init" type="text" inputmode="decimal" data-comma step="5000" value="0" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 font-semibold text-slate-800" />
             </div>
             <div>
               <label class="text-slate-500 block mb-1">投入方式</label>
@@ -504,7 +523,7 @@
             </div>
             <div class="col-span-2">
               <label class="text-slate-500 block mb-1">每年／單筆投入金額（元）</label>
-              <input id="py-amount" type="number" step="50000" value="1250000" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 font-semibold text-slate-800" />
+              <input id="py-amount" type="text" inputmode="decimal" data-comma step="50000" value="1,250,000" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 font-semibold text-slate-800" />
             </div>
           </div>
         </div>
@@ -549,7 +568,7 @@
           <div class="space-y-4">
             <div>
               <label for="l-principal" class="block text-sm font-medium text-slate-700 mb-1">期初本金（元）</label>
-              <input id="l-principal" type="number" step="100000" min="0" value="5000000" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+              <input id="l-principal" type="text" inputmode="decimal" data-comma step="100000" min="0" value="5,000,000" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
             </div>
             <div class="grid grid-cols-2 gap-3">
               <div>
@@ -639,11 +658,11 @@
           <div class="space-y-4">
             <div>
               <label for="cagr-start" class="block text-sm font-medium text-slate-700 mb-1">期初金額（元）</label>
-              <input id="cagr-start" type="number" step="10000" min="1" value="1000000" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+              <input id="cagr-start" type="text" inputmode="decimal" data-comma step="10000" min="1" value="1,000,000" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
             </div>
             <div>
               <label for="cagr-end" class="block text-sm font-medium text-slate-700 mb-1">期末金額（元）</label>
-              <input id="cagr-end" type="number" step="10000" min="0" value="3850000" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+              <input id="cagr-end" type="text" inputmode="decimal" data-comma step="10000" min="0" value="3,850,000" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
             </div>
             <div>
               <label for="cagr-years" class="block text-sm font-medium text-slate-700 mb-1">投資年數（年）</label>
@@ -687,6 +706,38 @@
               <input id="irr-start-month" type="month" value="2015-08" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
             </div>
             <div>
+              <label for="irr-end-month" class="block text-sm font-medium text-slate-700 mb-1">結束年月</label>
+              <input id="irr-end-month" type="month" value="2022-12" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+            </div>
+            <div>
+              <label for="irr-monthly" class="block text-sm font-medium text-slate-700 mb-1">每月投資金額（元）</label>
+              <input id="irr-monthly" type="text" inputmode="decimal" data-comma value="10,000" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+            </div>
+            <div>
+              <label for="irr-fv" class="block text-sm font-medium text-slate-700 mb-1">期末總資產（元）</label>
+              <input id="irr-fv" type="text" inputmode="decimal" data-comma value="1,022,909" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+            </div>
+          </div>
+
+          <p class="text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-xl p-3">計算假設：每月<strong>月底</strong>投入，期數為「結束年月 − 起始年月」（不含起始月本身），至少需 2 期。</p>
+
+          <div id="irr-error" class="hidden rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs p-3"></div>
+
+          <div class="bg-gradient-to-br from-navy-900 to-navy-800 text-white rounded-2xl p-5 space-y-4">
+            <div>
+              <p class="text-xs text-emerald-300 font-medium">年化報酬率（IRR）</p>
+              <p id="irr-result" class="text-4xl font-extrabold mt-1">—</p>
+            </div>
+            <div class="grid grid-cols-3 gap-3 pt-3 border-t border-white/15 text-xs">
+              <div><p class="text-slate-300">投資期數</p><p id="irr-months" class="text-base font-bold mt-0.5">—</p></div>
+              <div><p class="text-slate-300">總投入本金</p><p id="irr-principal" class="text-base font-bold mt-0.5">—</p></div>
+              <div><p class="text-slate-300">累積總報酬率</p><p id="irr-total-rate" class="text-base font-bold text-emerald-400 mt-0.5">—</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- ==================== FOOTER: 回測工具清單 ==================== -->
     <section class="mt-10 bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 sm:p-6">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
@@ -735,7 +786,7 @@
           <p class="text-xs text-slate-500 mt-1">比較任意持有期間之最高、最低與平均年化報酬。</p>
         </a>
 
-        <a href="https://tool.yp-finance.com/rollingcompare" target="_blank" rel="noopener noreferrer"
+        <a href="https://finguider.cc/calculator?tab=BT&amp;mode=regularContribution" target="_blank" rel="noopener noreferrer"
           class="group block rounded-xl border border-slate-200 bg-slate-50/70 p-4 hover:border-emerald-400 hover:bg-emerald-50/40 hover:shadow-sm transition">
           <div class="flex items-center justify-between mb-1.5">
             <span class="text-xs font-bold text-emerald-700">04・美股市場回測</span>
@@ -747,7 +798,7 @@
           <p class="text-xs text-slate-500 mt-1">追蹤美股大盤指數或 ETF 長期複利與股息再投入績效。</p>
         </a>
 
-        <a href="https://tool.yp-finance.com/rollingcompare" target="_blank" rel="noopener noreferrer"
+        <a href="https://tool.yp-finance.com/loanaddstack" target="_blank" rel="noopener noreferrer"
           class="group block rounded-xl border border-slate-200 bg-slate-50/70 p-4 hover:border-emerald-400 hover:bg-emerald-50/40 hover:shadow-sm transition">
           <div class="flex items-center justify-between mb-1.5">
             <span class="text-xs font-bold text-emerald-700">05・槓桿與機率模擬</span>
@@ -763,7 +814,7 @@
   </main>
 
   <footer class="py-5 text-center text-xs text-slate-400 border-t border-slate-200/70 bg-white mt-8">
-    複利與退休理財計算機・試算結果僅供理財規劃參考，實際投資報酬視市場波動而定。
+    複利與退休理財計算機・試算結果僅供理財規劃參考，實際投資報酬視市場波動而定。計算假設：定期定額與策略 PK 為「年底投入」，年化報酬率反推為「月底投入」。
   </footer>
 
   <!-- Application Logic -->
@@ -786,6 +837,51 @@
       if (!isFinite(val)) return '—';
       return val.toFixed(digits) + '%';
     };
+
+    const parseNum = (v) => parseFloat(String(v).replace(/,/g, ''));
+
+    const fmtFixed = (val, d = 2) => {
+      if (!isFinite(val)) return '—';
+      return val.toLocaleString('zh-TW', { minimumFractionDigits: d, maximumFractionDigits: d });
+    };
+
+    // Thousand-separator support for text inputs marked with data-comma
+    const commaFmt = (str) => {
+      const neg = String(str).trim().startsWith('-');
+      const raw = String(str).replace(/[^\d.]/g, '');
+      const dot = raw.indexOf('.');
+      const intPart = (dot === -1 ? raw : raw.slice(0, dot)).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      const decPart = dot === -1 ? '' : '.' + raw.slice(dot + 1).replace(/\./g, '');
+      return (neg ? '-' : '') + intPart + decPart;
+    };
+
+    function formatAllCommaInputs() {
+      document.querySelectorAll('input[data-comma]').forEach((el) => {
+        if (el === document.activeElement) return;
+        const f = commaFmt(el.value);
+        if (f !== el.value) el.value = f;
+      });
+    }
+
+    document.addEventListener('input', (e) => {
+      const el = e.target;
+      if (!el.matches || !el.matches('input[data-comma]')) return;
+      const pos = el.selectionStart;
+      const digitsBefore = el.value.slice(0, pos).replace(/[^\d.]/g, '').length;
+      const f = commaFmt(el.value);
+      if (f !== el.value) {
+        el.value = f;
+        let c = 0, np = 0;
+        while (np < f.length && c < digitsBefore) {
+          if (/[\d.]/.test(f[np])) c++;
+          np++;
+        }
+        try { el.setSelectionRange(np, np); } catch (err) {}
+      }
+    });
+    // Buttons (reset / scenario) set values programmatically: reformat afterwards
+    document.addEventListener('click', () => setTimeout(formatAllCommaInputs, 0));
+    document.addEventListener('change', () => setTimeout(formatAllCommaInputs, 0));
 
     const charts = {};
 
@@ -852,9 +948,9 @@
     // TAB 1: 退休收入計算機
     // =========================================================================
     function calcRetire() {
-      const amountWan = parseFloat(document.getElementById('r-amount').value) || 0;
-      const inflationPct = parseFloat(document.getElementById('r-inflation').value) || 0;
-      const nominalPct = parseFloat(document.getElementById('r-nominal').value) || 0;
+      const amountWan = parseNum(document.getElementById('r-amount').value) || 0;
+      const inflationPct = parseNum(document.getElementById('r-inflation').value) || 0;
+      const nominalPct = parseNum(document.getElementById('r-nominal').value) || 0;
       const retireAge = parseInt(document.getElementById('r-retire-age').value, 10) || 0;
       const endAge = parseInt(document.getElementById('r-end-age').value, 10) || 0;
       const errEl = document.getElementById('r-error');
@@ -864,6 +960,7 @@
         errEl.classList.remove('hidden');
         document.getElementById('r-pmt').textContent = '—';
         document.getElementById('r-reserve').textContent = '—';
+        if (charts.retire) { charts.retire.destroy(); charts.retire = null; }
         return;
       }
       if (inflationPct <= -100) {
@@ -946,9 +1043,9 @@
     // TAB 2: 定期定額與單筆目標試算
     // =========================================================================
     function calcGoal1() {
-      const principal = parseFloat(document.getElementById('g1-principal').value) || 0;
-      const ratePct = parseFloat(document.getElementById('g1-rate').value) || 0;
-      const target = parseFloat(document.getElementById('g1-target').value) || 0;
+      const principal = parseNum(document.getElementById('g1-principal').value) || 0;
+      const ratePct = parseNum(document.getElementById('g1-rate').value) || 0;
+      const target = parseNum(document.getElementById('g1-target').value) || 0;
       const r = ratePct / 100;
 
       let goalYear = null;
@@ -1033,10 +1130,10 @@
     }
 
     function calcGoal2() {
-      const principal = parseFloat(document.getElementById('g2-principal').value) || 0;
-      const monthly = parseFloat(document.getElementById('g2-monthly').value) || 0;
-      const ratePct = parseFloat(document.getElementById('g2-rate').value) || 0;
-      const target = parseFloat(document.getElementById('g2-target').value) || 0;
+      const principal = parseNum(document.getElementById('g2-principal').value) || 0;
+      const monthly = parseNum(document.getElementById('g2-monthly').value) || 0;
+      const ratePct = parseNum(document.getElementById('g2-rate').value) || 0;
+      const target = parseNum(document.getElementById('g2-target').value) || 0;
       const r = ratePct / 100;
       const annualDeposit = monthly * 12;
 
@@ -1240,12 +1337,12 @@
     }
 
     function calcPK() {
-      const r = (parseFloat(document.getElementById('pk-rate').value) || 0) / 100;
+      const r = (parseNum(document.getElementById('pk-rate').value) || 0) / 100;
       const targetAge = Math.min(65, Math.max(25, parseInt(document.getElementById('pk-target-age').value, 10) || 65));
       const pyEnabled = document.getElementById('py-enabled').checked;
 
       // Sync end age visibility for lump mode & dim disabled card
-      document.getElementById('py-card').classList.toggle('opacity-55', !pyEnabled);
+      document.getElementById('py-card').classList.toggle('opacity-50', !pyEnabled);
       ['p', 'a', 'py'].forEach((prefix) => {
         const isLump = document.getElementById(`${prefix}-mode`).value === 'lump';
         const endInput = document.getElementById(`${prefix}-end`);
@@ -1255,11 +1352,11 @@
       });
 
       const readCfg = (prefix) => ({
-        init: parseFloat(document.getElementById(`${prefix}-init`).value) || 0,
+        init: parseNum(document.getElementById(`${prefix}-init`).value) || 0,
         mode: document.getElementById(`${prefix}-mode`).value,
-        start: parseInt(document.getElementById(`${prefix}-start`).value, 10) || 25,
-        end: parseInt(document.getElementById(`${prefix}-end`).value, 10) || 65,
-        amount: parseFloat(document.getElementById(`${prefix}-amount`).value) || 0,
+        start: Math.min(65, Math.max(25, parseInt(document.getElementById(`${prefix}-start`).value, 10) || 25)),
+        end: Math.min(65, Math.max(25, parseInt(document.getElementById(`${prefix}-end`).value, 10) || 65)),
+        amount: parseNum(document.getElementById(`${prefix}-amount`).value) || 0,
       });
 
       const paul = simulatePerson(readCfg('p'), r);
@@ -1300,7 +1397,7 @@
                 </div>
                 <div>
                   <span class="text-slate-400 block">資產倍數</span>
-                  <span class="font-bold text-emerald-600">${mult.toFixed(2)} 倍</span>
+                  <span class="font-bold text-emerald-600">${fmtFixed(mult, 2)} 倍</span>
                 </div>
               </div>
             </div>
@@ -1393,8 +1490,17 @@
       'a-init', 'a-mode', 'a-start', 'a-end', 'a-amount',
       'py-enabled', 'py-init', 'py-mode', 'py-start', 'py-end', 'py-amount',
     ].forEach((id) => {
-      document.getElementById(id).addEventListener('input', calcPK);
-      document.getElementById(id).addEventListener('change', calcPK);
+      const onUserEdit = () => {
+        if (!id.startsWith('pk-')) {
+          document.querySelectorAll('.pk-scenario-btn').forEach((btn) => {
+            btn.classList.remove('border-2', 'border-emerald-500', 'bg-emerald-50/70');
+            btn.classList.add('border', 'border-slate-200', 'bg-white');
+          });
+        }
+        calcPK();
+      };
+      document.getElementById(id).addEventListener('input', onUserEdit);
+      document.getElementById(id).addEventListener('change', onUserEdit);
     });
 
     // =========================================================================
@@ -1404,7 +1510,7 @@
     let hasCustomRates = false;
 
     function buildLumpTable() {
-      const principal = parseFloat(document.getElementById('l-principal').value) || 0;
+      const principal = parseNum(document.getElementById('l-principal').value) || 0;
       const targetYears = Math.min(50, Math.max(1, parseInt(document.getElementById('l-years').value, 10) || 1));
 
       let startBal = principal;
@@ -1448,7 +1554,7 @@
       document.getElementById('l-years-label').textContent = targetYears;
       document.getElementById('l-fv').textContent = fmtCurrency(targetEndBal);
       const mult = principal > 0 ? targetEndBal / principal : 0;
-      document.getElementById('l-multiple').textContent = `${mult.toFixed(2)} 倍`;
+      document.getElementById('l-multiple').textContent = `${fmtFixed(mult, 2)} 倍`;
       document.getElementById('l-custom-badge').classList.toggle('hidden', !hasCustomRates);
       document.getElementById('l-tbody').innerHTML = rowsHtml.join('');
 
@@ -1493,13 +1599,13 @@
     document.getElementById('l-principal').addEventListener('input', buildLumpTable);
     document.getElementById('l-years').addEventListener('input', buildLumpTable);
     document.getElementById('l-rate').addEventListener('input', () => {
-      const uniform = parseFloat(document.getElementById('l-rate').value) || 0;
+      const uniform = parseNum(document.getElementById('l-rate').value) || 0;
       customYearRates = Array(50).fill(uniform);
       hasCustomRates = false;
       buildLumpTable();
     });
     document.getElementById('l-reset-rates').addEventListener('click', () => {
-      const uniform = parseFloat(document.getElementById('l-rate').value) || 0;
+      const uniform = parseNum(document.getElementById('l-rate').value) || 0;
       customYearRates = Array(50).fill(uniform);
       hasCustomRates = false;
       buildLumpTable();
@@ -1517,9 +1623,9 @@
     // TAB 5: 年化報酬率反推（CAGR / IRR）
     // =========================================================================
     function calcCAGR() {
-      const start = parseFloat(document.getElementById('cagr-start').value);
-      const end = parseFloat(document.getElementById('cagr-end').value);
-      const years = parseFloat(document.getElementById('cagr-years').value);
+      const start = parseNum(document.getElementById('cagr-start').value);
+      const end = parseNum(document.getElementById('cagr-end').value);
+      const years = parseNum(document.getElementById('cagr-years').value);
       const errEl = document.getElementById('cagr-error');
 
       if (!start || start <= 0 || isNaN(end) || end < 0 || !years || years <= 0) {
@@ -1567,13 +1673,14 @@
     function calcIRR() {
       const startStr = document.getElementById('irr-start-month').value;
       const endStr = document.getElementById('irr-end-month').value;
-      const pmt = parseFloat(document.getElementById('irr-monthly').value);
-      const fv = parseFloat(document.getElementById('irr-fv').value);
+      const pmt = parseNum(document.getElementById('irr-monthly').value);
+      const fv = parseNum(document.getElementById('irr-fv').value);
       const errEl = document.getElementById('irr-error');
 
       if (!startStr || !endStr) {
         errEl.textContent = '請選擇有效的起始與結束年月。';
         errEl.classList.remove('hidden');
+        ['irr-result', 'irr-months', 'irr-principal', 'irr-total-rate'].forEach((id) => { document.getElementById(id).textContent = '—'; });
         return;
       }
 
@@ -1581,10 +1688,10 @@
       const [eYear, eMonth] = endStr.split('-').map(Number);
       const months = (eYear - sYear) * 12 + (eMonth - sMonth);
 
-      if (months <= 0 || !pmt || pmt <= 0 || !fv || fv <= 0) {
-        errEl.textContent = '結束年月須晚於起始年月，且每月投資金額與終值須大於 0。';
+      if (months <= 1 || !pmt || pmt <= 0 || !fv || fv <= 0) {
+        errEl.textContent = '結束年月須比起始年月至少晚 2 個月（至少 2 期），且每月投資金額與終值須大於 0。';
         errEl.classList.remove('hidden');
-        document.getElementById('irr-result').textContent = '—';
+        ['irr-result', 'irr-months', 'irr-principal', 'irr-total-rate'].forEach((id) => { document.getElementById(id).textContent = '—'; });
         return;
       }
       errEl.classList.add('hidden');
@@ -1594,11 +1701,6 @@
       document.getElementById('irr-months').textContent = `${months.toLocaleString('zh-TW')} 個月`;
       document.getElementById('irr-principal').textContent = fmtCurrency(totalPrincipal);
       document.getElementById('irr-total-rate').textContent = `${totalRate >= 0 ? '+' : ''}${fmtPercent(totalRate, 2)}`;
-
-      if (months === 1) {
-        document.getElementById('irr-result').textContent = '0.00%';
-        return;
-      }
 
       const r_m = solveMonthlyRateBisection(pmt, months, fv);
       const annualRate = (Math.pow(1 + r_m, 12) - 1) * 100;
@@ -1629,6 +1731,7 @@
     // Initialize All Modules on Load
     // =========================================================================
     window.addEventListener('DOMContentLoaded', () => {
+      formatAllCommaInputs();
       calcRetire();
       calcGoal1();
       calcGoal2();
