@@ -925,24 +925,36 @@
     const tabBtns = document.querySelectorAll('.tab-btn');
     const tabPanels = document.querySelectorAll('.tab-panel');
 
-    tabBtns.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const targetId = btn.dataset.tab;
-        tabBtns.forEach((b) => {
-          b.classList.remove('bg-emerald-500', 'text-white', 'shadow-md', 'shadow-emerald-900/30', 'font-semibold');
-          b.classList.add('text-slate-300', 'hover:text-white', 'hover:bg-white/10', 'font-medium');
-        });
-        btn.classList.add('bg-emerald-500', 'text-white', 'shadow-md', 'shadow-emerald-900/30', 'font-semibold');
-        btn.classList.remove('text-slate-300', 'hover:text-white', 'hover:bg-white/10', 'font-medium');
+    function activateTab(targetId, updateUrl = true) {
+      const btn = Array.from(tabBtns).find((b) => b.dataset.tab === targetId);
+      if (!btn) return false;
 
-        tabPanels.forEach((panel) => {
-          panel.classList.toggle('hidden', panel.id !== targetId);
-        });
-
-        // Trigger resize for visible charts to ensure sharp rendering
-        Object.values(charts).forEach((ch) => ch && ch.resize());
+      tabBtns.forEach((b) => {
+        b.classList.remove('bg-emerald-500', 'text-white', 'shadow-md', 'shadow-emerald-900/30', 'font-semibold');
+        b.classList.add('text-slate-300', 'hover:text-white', 'hover:bg-white/10', 'font-medium');
       });
+      btn.classList.add('bg-emerald-500', 'text-white', 'shadow-md', 'shadow-emerald-900/30', 'font-semibold');
+      btn.classList.remove('text-slate-300', 'hover:text-white', 'hover:bg-white/10', 'font-medium');
+
+      tabPanels.forEach((panel) => {
+        panel.classList.toggle('hidden', panel.id !== targetId);
+      });
+
+      if (updateUrl) {
+        try { history.replaceState(null, '', '#' + targetId); } catch (err) { /* e.g. sandboxed preview */ }
+      }
+
+      // Trigger resize for visible charts to ensure sharp rendering
+      Object.values(charts).forEach((ch) => ch && ch.resize());
+      return true;
+    }
+
+    tabBtns.forEach((btn) => {
+      btn.addEventListener('click', () => activateTab(btn.dataset.tab));
     });
+
+    // Open the tab named in the URL hash (e.g. #tab-lump); other hashes (like #note-1) are ignored
+    window.addEventListener('hashchange', () => activateTab(location.hash.slice(1), false));
 
     // =========================================================================
     // TAB 1: 退休收入計算機
@@ -1739,6 +1751,7 @@
       buildLumpTable();
       calcCAGR();
       calcIRR();
+      activateTab(location.hash.slice(1), false);
     });
   </script>
 </body>
