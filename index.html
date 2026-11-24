@@ -1,0 +1,1642 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>複利與退休理財計算機</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <!-- Google Fonts: Inter & Noto Sans TC -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'Noto Sans TC', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            navy: {
+              950: '#071124',
+              900: '#0B1933',
+              800: '#12264A',
+              700: '#1D3A6D',
+            },
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    /* Custom subtle scrollbars for tables and mobile tab strip */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      opacity: 0.6;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
+
+  <!-- Top Header & Navigation Tabs -->
+  <header class="bg-gradient-to-r from-navy-950 via-navy-900 to-navy-800 text-white shadow-lg sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-3">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center shrink-0">
+            <svg class="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-lg sm:text-xl font-bold tracking-tight text-white">複利與退休理財計算機</h1>
+            <p class="text-xs text-slate-300">退休實質購買力・目標達成試算・投資策略 PK・複利終值・CAGR / IRR 反推</p>
+          </div>
+        </div>
+        <div class="hidden md:flex items-center gap-2 text-xs text-emerald-300 bg-emerald-500/10 border border-emerald-400/25 px-3 py-1.5 rounded-full">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          即時連動試算與圖表更新
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar pb-1" role="tablist" aria-label="功能分頁">
+        <button data-tab="tab-retire" class="tab-btn whitespace-nowrap px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 bg-emerald-500 text-white shadow-md shadow-emerald-900/30">
+          <span>1. 退休收入計算機</span>
+        </button>
+        <button data-tab="tab-goal" class="tab-btn whitespace-nowrap px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-1.5 text-slate-300 hover:text-white hover:bg-white/10">
+          <span>2. 定期定額與單筆目標</span>
+        </button>
+        <button data-tab="tab-pk" class="tab-btn whitespace-nowrap px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-1.5 text-slate-300 hover:text-white hover:bg-white/10">
+          <span>3. 投資策略 PK</span>
+        </button>
+        <button data-tab="tab-lump" class="tab-btn whitespace-nowrap px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-1.5 text-slate-300 hover:text-white hover:bg-white/10">
+          <span>4. 單筆複利試算表</span>
+        </button>
+        <button data-tab="tab-irr" class="tab-btn whitespace-nowrap px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-1.5 text-slate-300 hover:text-white hover:bg-white/10">
+          <span>5. 年化報酬率反推</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+
+    <!-- ==================== TAB 1: 退休收入計算機 ==================== -->
+    <section id="tab-retire" class="tab-panel space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Left Inputs -->
+        <div class="lg:col-span-4 bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 sm:p-6 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h2 class="text-base font-bold text-navy-900">退休參數設定</h2>
+            <button id="retire-reset" class="text-xs font-medium text-emerald-600 hover:text-emerald-700 px-2.5 py-1 rounded-lg hover:bg-emerald-50 transition">重設預設值</button>
+          </div>
+
+          <div class="space-y-4">
+            <div>
+              <label for="r-amount" class="block text-sm font-medium text-slate-700 mb-1">退休時可用於投資金額（萬元）</label>
+              <div class="relative">
+                <input id="r-amount" type="number" step="10" min="0" value="500" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
+                <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-medium">萬元</span>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label for="r-inflation" class="block text-sm font-medium text-slate-700 mb-1">預期通膨率（%）</label>
+                <div class="relative">
+                  <input id="r-inflation" type="number" step="0.1" value="3" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
+                  <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">%</span>
+                </div>
+              </div>
+              <div>
+                <label for="r-nominal" class="block text-sm font-medium text-slate-700 mb-1">預期年化報酬率（%）</label>
+                <div class="relative">
+                  <input id="r-nominal" type="number" step="0.1" value="15" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
+                  <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">%</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label for="r-retire-age" class="block text-sm font-medium text-slate-700 mb-1">退休時年齡</label>
+                <div class="relative">
+                  <input id="r-retire-age" type="number" step="1" min="0" max="120" value="35" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
+                  <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">歲</span>
+                </div>
+              </div>
+              <div>
+                <label for="r-end-age" class="block text-sm font-medium text-slate-700 mb-1">預計登出年齡</label>
+                <div class="relative">
+                  <input id="r-end-age" type="number" step="1" min="1" max="130" value="95" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
+                  <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">歲</span>
+                </div>
+              </div>
+            </div>
+
+            <div id="r-error" class="hidden rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs p-3"></div>
+          </div>
+        </div>
+
+        <!-- Right KPIs & Chart -->
+        <div class="lg:col-span-8 space-y-6">
+          <!-- KPI Cards -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="bg-gradient-to-br from-navy-900 to-navy-800 text-white rounded-2xl p-5 shadow-md">
+              <p class="text-xs font-medium text-emerald-300 uppercase tracking-wider">每月被動收入（實質購買力）</p>
+              <p id="r-pmt" class="text-3xl sm:text-4xl font-extrabold mt-2 tracking-tight text-white">$48,590</p>
+              <p class="text-xs text-slate-300 mt-2">等同退休當下（第 1 年）每月可花費之實質金額</p>
+            </div>
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-emerald-200 bg-gradient-to-br from-emerald-50/60 to-white">
+              <p class="text-xs font-semibold text-emerald-700 uppercase tracking-wider">建議預留 2 年生活費定存金額</p>
+              <p id="r-reserve" class="text-2xl sm:text-3xl font-extrabold mt-2 text-navy-900">$1,166,158</p>
+              <p class="text-xs text-slate-500 mt-2">公式：每月被動收入 × 24 個月（市場大跌緩衝用）</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80">
+              <p class="text-xs text-slate-500">實質年化報酬率</p>
+              <p id="r-real-rate" class="text-xl font-bold text-emerald-600 mt-1">11.65%</p>
+            </div>
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80">
+              <p class="text-xs text-slate-500">提領總年數</p>
+              <p id="r-years" class="text-xl font-bold text-navy-900 mt-1">60 年（720 期）</p>
+            </div>
+            <div class="col-span-2 sm:col-span-1 bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80">
+              <p class="text-xs text-slate-500">退休投資本金</p>
+              <p id="r-pv" class="text-xl font-bold text-navy-900 mt-1">$5,000,000</p>
+            </div>
+          </div>
+
+          <!-- Chart -->
+          <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-sm font-bold text-navy-900">退休後實質剩餘資產曲線（已扣除通膨）</h3>
+              <span class="text-xs text-slate-400">單位：新台幣（元）</span>
+            </div>
+            <div class="relative h-64 sm:h-72 w-full">
+              <canvas id="retireChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Explanation Card -->
+      <div class="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-5 sm:p-6 space-y-2.5 text-sm text-slate-700 leading-relaxed">
+        <div class="flex items-center gap-2 font-bold text-amber-900">
+          <svg class="w-5 h-5 text-amber-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>重要說明與風險緩衝提醒</span>
+        </div>
+        <p>說明：這裡計算的是考慮通膨後的實質報酬率，所以算出來的金額代表的是「等同於退休當下（第1年）購買力」的實質金額。例如：阿良設定45歲退休，100歲登出，通膨3%，算出來是5萬元，則表示從 45 歲到 100 歲這 55 年間，每個月都能擁有相當於退休當年5萬元的生活水準。</p>
+        <p class="font-semibold text-amber-900">💡 建議留2年的生活費放定存，碰到大跌時可以先不賣股票，解定存支應生活費。</p>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 2: 定期定額與單筆目標試算 ==================== -->
+    <section id="tab-goal" class="tab-panel hidden space-y-6">
+      <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
+
+        <!-- Case 1: 單筆投資目標試算 -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 sm:p-6 space-y-5">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div>
+              <span class="text-xs font-bold uppercase tracking-wider text-emerald-600">案例 1</span>
+              <h2 class="text-lg font-bold text-navy-900">單筆投資目標試算</h2>
+            </div>
+            <button id="g1-reset" class="text-xs font-medium text-emerald-600 hover:bg-emerald-50 px-2.5 py-1 rounded-lg transition">重設</button>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label for="g1-principal" class="block text-xs font-medium text-slate-600 mb-1">起始資金（元）</label>
+              <input id="g1-principal" type="number" step="100000" min="0" value="1000000" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+            </div>
+            <div>
+              <label for="g1-rate" class="block text-xs font-medium text-slate-600 mb-1">預期年報酬率（%）</label>
+              <input id="g1-rate" type="number" step="0.5" value="5" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+            </div>
+            <div>
+              <label for="g1-target" class="block text-xs font-medium text-slate-600 mb-1">目標金額（元）</label>
+              <input id="g1-target" type="number" step="1000000" min="0" value="20000000" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+            </div>
+          </div>
+
+          <!-- KPI Banner -->
+          <div class="bg-navy-900 text-white rounded-2xl p-4 flex items-center justify-between">
+            <div>
+              <p class="text-xs text-slate-300">達到目標需要時間</p>
+              <p id="g1-years" class="text-3xl font-extrabold text-emerald-400 mt-0.5">62 年</p>
+            </div>
+            <div class="text-right">
+              <p class="text-xs text-slate-300">達標年度累積總資金</p>
+              <p id="g1-final" class="text-lg font-bold text-white mt-0.5">$20,592,714</p>
+            </div>
+          </div>
+
+          <!-- Chart -->
+          <div class="relative h-60 w-full">
+            <canvas id="goal1Chart"></canvas>
+          </div>
+
+          <!-- Yearly Table -->
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="text-sm font-bold text-navy-900">年度累積總資金明細</h3>
+              <span id="g1-table-note" class="text-xs text-slate-400"></span>
+            </div>
+            <div class="max-h-72 overflow-y-auto rounded-xl border border-slate-200">
+              <table class="w-full text-sm text-left">
+                <thead class="bg-slate-100 text-slate-600 text-xs uppercase sticky top-0">
+                  <tr>
+                    <th class="px-4 py-2.5">經過年數</th>
+                    <th class="px-4 py-2.5 text-right">累積總資金</th>
+                    <th class="px-4 py-2.5 text-right">達成進度</th>
+                  </tr>
+                </thead>
+                <tbody id="g1-tbody" class="divide-y divide-slate-100"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Case 2: 定期定額目標試算 -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 sm:p-6 space-y-5">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div>
+              <span class="text-xs font-bold uppercase tracking-wider text-emerald-600">案例 2</span>
+              <h2 class="text-lg font-bold text-navy-900">定期定額目標試算</h2>
+            </div>
+            <button id="g2-reset" class="text-xs font-medium text-emerald-600 hover:bg-emerald-50 px-2.5 py-1 rounded-lg transition">重設</button>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div>
+              <label for="g2-principal" class="block text-xs font-medium text-slate-600 mb-1">起始資金（元）</label>
+              <input id="g2-principal" type="number" step="10000" min="0" value="0" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+            </div>
+            <div>
+              <label for="g2-monthly" class="block text-xs font-medium text-slate-600 mb-1">每月投資（元）</label>
+              <input id="g2-monthly" type="number" step="1000" min="0" value="10000" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+            </div>
+            <div>
+              <label for="g2-rate" class="block text-xs font-medium text-slate-600 mb-1">年報酬率（%）</label>
+              <input id="g2-rate" type="number" step="0.5" value="6" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+            </div>
+            <div>
+              <label for="g2-target" class="block text-xs font-medium text-slate-600 mb-1">目標金額（元）</label>
+              <input id="g2-target" type="number" step="1000000" min="0" value="10000000" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+            </div>
+          </div>
+
+          <!-- KPI Cards -->
+          <div class="grid grid-cols-3 gap-3">
+            <div class="bg-navy-900 text-white rounded-2xl p-3.5">
+              <p class="text-[11px] text-slate-300">達到目標時間</p>
+              <p id="g2-years" class="text-2xl font-extrabold text-emerald-400 mt-0.5">31 年</p>
+            </div>
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5">
+              <p class="text-[11px] text-slate-500">累計總投入本金</p>
+              <p id="g2-total-deposit" class="text-base sm:text-lg font-bold text-navy-900 mt-1">$3,720,000</p>
+            </div>
+            <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-3.5">
+              <p class="text-[11px] text-emerald-700">總複利收益</p>
+              <p id="g2-total-gain" class="text-base sm:text-lg font-bold text-emerald-700 mt-1">$6,456,201</p>
+            </div>
+          </div>
+
+          <!-- Chart -->
+          <div class="relative h-60 w-full">
+            <canvas id="goal2Chart"></canvas>
+          </div>
+
+          <!-- Yearly Detail Table (Up to 75 years) -->
+          <div>
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <h3 class="text-sm font-bold text-navy-900">年度複利明細表（含趣味里程碑）</h3>
+              <button id="g2-toggle-rows" class="text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3 py-1 rounded-lg transition">
+                展開全部 75 年
+              </button>
+            </div>
+            <div class="max-h-80 overflow-y-auto overflow-x-auto rounded-xl border border-slate-200">
+              <table class="w-full text-xs sm:text-sm text-left min-w-[540px]">
+                <thead class="bg-slate-100 text-slate-600 text-xs sticky top-0 z-10">
+                  <tr>
+                    <th class="px-3 py-2.5">年數</th>
+                    <th class="px-3 py-2.5 text-right">當年存款</th>
+                    <th class="px-3 py-2.5 text-right">扣除存款後身價增加</th>
+                    <th class="px-3 py-2.5 text-right">累積身價</th>
+                    <th class="px-3 py-2.5">里程碑</th>
+                  </tr>
+                </thead>
+                <tbody id="g2-tbody" class="divide-y divide-slate-100"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 3: 投資策略 PK ==================== -->
+    <section id="tab-pk" class="tab-panel hidden space-y-6">
+      <!-- Scenario Switcher & Common Controls -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 space-y-4">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div>
+            <h2 class="text-lg font-bold text-navy-900">投資策略 PK（保羅 vs 阿良 vs 丕歪）</h2>
+            <p class="text-xs text-slate-500 mt-0.5">一鍵切換 4 種經典試算情境，或自由微調下方三人參數（模擬 25 歲至 65 歲）</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-3">
+            <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5">
+              <label for="pk-rate" class="text-xs font-medium text-slate-600 whitespace-nowrap">預期年報酬率</label>
+              <input id="pk-rate" type="number" step="0.5" value="10" class="w-16 text-right font-bold text-navy-900 bg-white border border-slate-300 rounded-lg px-2 py-1 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+              <span class="text-xs text-slate-500">%</span>
+            </div>
+            <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5">
+              <label for="pk-target-age" class="text-xs font-medium text-slate-600 whitespace-nowrap">檢視目標年齡</label>
+              <input id="pk-target-age" type="number" min="25" max="65" value="65" class="w-16 text-right font-bold text-navy-900 bg-white border border-slate-300 rounded-lg px-2 py-1 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+              <span class="text-xs text-slate-500">歲</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4 Preset Scenario Buttons -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+          <button data-scenario="1" class="pk-scenario-btn text-left p-3 rounded-xl border-2 border-emerald-500 bg-emerald-50/70 transition">
+            <div class="text-xs font-bold text-emerald-700">情境 1</div>
+            <div class="text-sm font-bold text-navy-900 mt-0.5">定期定額提早</div>
+            <div class="text-[11px] text-slate-500 mt-0.5">早存 10 年停扣 vs 晚 10 年存到 65 歲</div>
+          </button>
+          <button data-scenario="2" class="pk-scenario-btn text-left p-3 rounded-xl border border-slate-200 hover:border-slate-300 bg-white transition">
+            <div class="text-xs font-bold text-slate-500">情境 2</div>
+            <div class="text-sm font-bold text-navy-900 mt-0.5">定期定額加大</div>
+            <div class="text-[11px] text-slate-500 mt-0.5">阿良 35 歲起每月加大至 2.8 萬</div>
+          </button>
+          <button data-scenario="3" class="pk-scenario-btn text-left p-3 rounded-xl border border-slate-200 hover:border-slate-300 bg-white transition">
+            <div class="text-xs font-bold text-slate-500">情境 3</div>
+            <div class="text-sm font-bold text-navy-900 mt-0.5">定期定額改單筆</div>
+            <div class="text-[11px] text-slate-500 mt-0.5">阿良 35 歲直接單筆投入 320 萬</div>
+          </button>
+          <button data-scenario="4" class="pk-scenario-btn text-left p-3 rounded-xl border border-slate-200 hover:border-slate-300 bg-white transition">
+            <div class="text-xs font-bold text-slate-500">情境 4</div>
+            <div class="text-sm font-bold text-navy-900 mt-0.5">定期定額改單筆信貸</div>
+            <div class="text-[11px] text-slate-500 mt-0.5">丕歪加入！25 歲單筆信貸 125 萬</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Character Parameter Cards -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <!-- 保羅 -->
+        <div class="bg-white rounded-2xl shadow-sm border-t-4 border-t-blue-600 border-x border-b border-slate-200/80 p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold text-navy-900 flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-blue-600"></span>保羅（提早開始組）
+            </h3>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-medium">啟用中</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2.5 text-xs">
+            <div>
+              <label class="text-slate-500 block mb-1">初始資金</label>
+              <input id="p-init" type="number" step="5000" value="15000" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 font-semibold text-slate-800" />
+            </div>
+            <div>
+              <label class="text-slate-500 block mb-1">投入方式</label>
+              <select id="p-mode" class="w-full rounded-lg border border-slate-300 px-2 py-1.5 font-semibold text-slate-800 bg-white">
+                <option value="dca">每年定期投入</option>
+                <option value="lump">指定歲數單筆</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-slate-500 block mb-1">起始年齡</label>
+              <input id="p-start" type="number" min="25" max="65" value="25" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 font-semibold text-slate-800" />
+            </div>
+            <div>
+              <label class="text-slate-500 block mb-1">結束年齡</label>
+              <input id="p-end" type="number" min="25" max="65" value="34" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 font-semibold text-slate-800" />
+            </div>
+            <div class="col-span-2">
+              <label class="text-slate-500 block mb-1">每年／單筆投入金額（元）</label>
+              <input id="p-amount" type="number" step="10000" value="180000" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 font-semibold text-slate-800" />
+            </div>
+          </div>
+        </div>
+
+        <!-- 阿良 -->
+        <div class="bg-white rounded-2xl shadow-sm border-t-4 border-t-emerald-500 border-x border-b border-slate-200/80 p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold text-navy-900 flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-emerald-500"></span>阿良（晚起步追趕組）
+            </h3>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-medium">啟用中</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2.5 text-xs">
+            <div>
+              <label class="text-slate-500 block mb-1">初始資金</label>
+              <input id="a-init" type="number" step="5000" value="0" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 font-semibold text-slate-800" />
+            </div>
+            <div>
+              <label class="text-slate-500 block mb-1">投入方式</label>
+              <select id="a-mode" class="w-full rounded-lg border border-slate-300 px-2 py-1.5 font-semibold text-slate-800 bg-white">
+                <option value="dca">每年定期投入</option>
+                <option value="lump">指定歲數單筆</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-slate-500 block mb-1">起始年齡</label>
+              <input id="a-start" type="number" min="25" max="65" value="35" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 font-semibold text-slate-800" />
+            </div>
+            <div>
+              <label class="text-slate-500 block mb-1">結束年齡</label>
+              <input id="a-end" type="number" min="25" max="65" value="65" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 font-semibold text-slate-800" />
+            </div>
+            <div class="col-span-2">
+              <label class="text-slate-500 block mb-1">每年／單筆投入金額（元）</label>
+              <input id="a-amount" type="number" step="10000" value="180000" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 font-semibold text-slate-800" />
+            </div>
+          </div>
+        </div>
+
+        <!-- 丕歪 -->
+        <div id="py-card" class="bg-white rounded-2xl shadow-sm border-t-4 border-t-amber-500 border-x border-b border-slate-200/80 p-4 space-y-3 transition-opacity">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold text-navy-900 flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-amber-500"></span>丕歪（單筆信貸組）
+            </h3>
+            <label class="inline-flex items-center cursor-pointer gap-1.5 text-xs font-medium text-slate-600">
+              <input id="py-enabled" type="checkbox" class="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4" />
+              <span>啟用比較</span>
+            </label>
+          </div>
+          <div id="py-inputs" class="grid grid-cols-2 gap-2.5 text-xs">
+            <div>
+              <label class="text-slate-500 block mb-1">初始資金</label>
+              <input id="py-init" type="number" step="5000" value="0" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 font-semibold text-slate-800" />
+            </div>
+            <div>
+              <label class="text-slate-500 block mb-1">投入方式</label>
+              <select id="py-mode" class="w-full rounded-lg border border-slate-300 px-2 py-1.5 font-semibold text-slate-800 bg-white">
+                <option value="lump" selected>指定歲數單筆</option>
+                <option value="dca">每年定期投入</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-slate-500 block mb-1">起始年齡</label>
+              <input id="py-start" type="number" min="25" max="65" value="25" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 font-semibold text-slate-800" />
+            </div>
+            <div>
+              <label class="text-slate-500 block mb-1">結束年齡</label>
+              <input id="py-end" type="number" min="25" max="65" value="25" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 font-semibold text-slate-800" />
+            </div>
+            <div class="col-span-2">
+              <label class="text-slate-500 block mb-1">每年／單筆投入金額（元）</label>
+              <input id="py-amount" type="number" step="50000" value="1250000" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 font-semibold text-slate-800" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPI Comparison Cards -->
+      <div id="pk-kpi-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+
+      <!-- Chart -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-sm font-bold text-navy-900">25 歲至 65 歲累積身價成長曲線對比</h3>
+          <span class="text-xs text-slate-400">單位：新台幣（元）</span>
+        </div>
+        <div class="relative h-72 sm:h-80 w-full">
+          <canvas id="pkChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Full Age Table -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5">
+        <h3 class="text-sm font-bold text-navy-900 mb-3">25 歲～65 歲年齡對照明細表</h3>
+        <div class="max-h-96 overflow-y-auto overflow-x-auto rounded-xl border border-slate-200">
+          <table class="w-full text-xs sm:text-sm text-left min-w-[640px]">
+            <thead id="pk-thead" class="bg-slate-100 text-slate-600 text-xs sticky top-0 z-10"></thead>
+            <tbody id="pk-tbody" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 4: 單筆複利試算表 ==================== -->
+    <section id="tab-lump" class="tab-panel hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Quick FV Card -->
+        <div class="lg:col-span-5 bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 sm:p-6 space-y-5">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h2 class="text-base font-bold text-navy-900">快速計算複利終值</h2>
+            <button id="lump-reset-all" class="text-xs font-medium text-emerald-600 hover:bg-emerald-50 px-2.5 py-1 rounded-lg transition">重設預設值</button>
+          </div>
+
+          <div class="space-y-4">
+            <div>
+              <label for="l-principal" class="block text-sm font-medium text-slate-700 mb-1">期初本金（元）</label>
+              <input id="l-principal" type="number" step="100000" min="0" value="5000000" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label for="l-years" class="block text-sm font-medium text-slate-700 mb-1">期間（年，1~50）</label>
+                <input id="l-years" type="number" step="1" min="1" max="50" value="19" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+              </div>
+              <div>
+                <label for="l-rate" class="block text-sm font-medium text-slate-700 mb-1">統一預期年利率（%）</label>
+                <input id="l-rate" type="number" step="0.1" value="21.5" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Result Banner -->
+          <div class="bg-gradient-to-br from-navy-900 to-navy-800 text-white rounded-2xl p-5 space-y-3">
+            <div>
+              <p class="text-xs text-emerald-300 font-medium">第 <span id="l-years-label">19</span> 年複利終值</p>
+              <p id="l-fv" class="text-3xl font-extrabold tracking-tight mt-1">$202,264,323</p>
+            </div>
+            <div class="flex items-center justify-between pt-3 border-t border-white/15 text-xs">
+              <div>
+                <span class="text-slate-300">總報酬倍數：</span>
+                <span id="l-multiple" class="font-bold text-emerald-400 text-sm">40.45 倍</span>
+              </div>
+              <div id="l-custom-badge" class="hidden px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/40">
+                已套用自訂年度報酬率
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="lg:col-span-7 bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 sm:p-6 flex flex-col">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-sm font-bold text-navy-900">50 年單筆複利成長趨勢圖</h3>
+            <span class="text-xs text-slate-400">綠點標示設定之目標期間</span>
+          </div>
+          <div class="relative flex-1 min-h-[260px] w-full">
+            <canvas id="lumpChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- 50-Year Editable Table -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 sm:p-6 space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 class="text-base font-bold text-navy-900">50 年逐年複利明細表（支援單獨修改各年度報酬率）</h3>
+            <p class="text-xs text-slate-500">可直接修改任一年度的「年報酬率」，模擬市場多空漲跌對長期複利的影響</p>
+          </div>
+          <button id="l-reset-rates" class="text-xs font-semibold text-white bg-navy-900 hover:bg-navy-800 px-3.5 py-2 rounded-xl transition shadow-sm">
+            全部重設為統一利率
+          </button>
+        </div>
+
+        <div class="max-h-[460px] overflow-y-auto overflow-x-auto rounded-xl border border-slate-200">
+          <table class="w-full text-xs sm:text-sm text-left min-w-[580px]">
+            <thead class="bg-slate-100 text-slate-600 text-xs sticky top-0 z-10">
+              <tr>
+                <th class="px-4 py-2.5">年度</th>
+                <th class="px-4 py-2.5 text-right">期初金額</th>
+                <th class="px-4 py-2.5 text-center w-36">年報酬率（%）</th>
+                <th class="px-4 py-2.5 text-right">當年利息</th>
+                <th class="px-4 py-2.5 text-right">期末金額</th>
+              </tr>
+            </thead>
+            <tbody id="l-tbody" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 5: 年化報酬率反推（CAGR / IRR） ==================== -->
+    <section id="tab-irr" class="tab-panel hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- 1. 單筆投入求年化報酬率 -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 sm:p-6 space-y-5">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div>
+              <span class="text-xs font-bold uppercase tracking-wider text-emerald-600">CAGR 試算</span>
+              <h2 class="text-lg font-bold text-navy-900">單筆投入求年化報酬率</h2>
+            </div>
+            <button id="cagr-reset" class="text-xs font-medium text-emerald-600 hover:bg-emerald-50 px-2.5 py-1 rounded-lg transition">重設</button>
+          </div>
+
+          <div class="space-y-4">
+            <div>
+              <label for="cagr-start" class="block text-sm font-medium text-slate-700 mb-1">期初金額（元）</label>
+              <input id="cagr-start" type="number" step="10000" min="1" value="1000000" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+            </div>
+            <div>
+              <label for="cagr-end" class="block text-sm font-medium text-slate-700 mb-1">期末金額（元）</label>
+              <input id="cagr-end" type="number" step="10000" min="0" value="3850000" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+            </div>
+            <div>
+              <label for="cagr-years" class="block text-sm font-medium text-slate-700 mb-1">投資年數（年）</label>
+              <input id="cagr-years" type="number" step="0.5" min="0.1" value="15" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+            </div>
+          </div>
+
+          <div id="cagr-error" class="hidden rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs p-3"></div>
+
+          <div class="bg-gradient-to-br from-navy-900 to-navy-800 text-white rounded-2xl p-5 space-y-4">
+            <div>
+              <p class="text-xs text-emerald-300 font-medium">年化報酬率（CAGR）</p>
+              <p id="cagr-result" class="text-4xl font-extrabold mt-1">9.40%</p>
+            </div>
+            <div class="grid grid-cols-2 gap-3 pt-3 border-t border-white/15">
+              <div>
+                <p class="text-xs text-slate-300">累積總報酬率</p>
+                <p id="cagr-total-rate" class="text-lg font-bold text-emerald-400 mt-0.5">+285.00%</p>
+              </div>
+              <div>
+                <p class="text-xs text-slate-300">總獲利金額</p>
+                <p id="cagr-profit" class="text-lg font-bold text-white mt-0.5">$2,850,000</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. 定期定額求年化報酬率 -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 sm:p-6 space-y-5">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div>
+              <span class="text-xs font-bold uppercase tracking-wider text-emerald-600">IRR 反推（二分搜尋法）</span>
+              <h2 class="text-lg font-bold text-navy-900">定期定額求年化報酬率</h2>
+            </div>
+            <button id="irr-reset" class="text-xs font-medium text-emerald-600 hover:bg-emerald-50 px-2.5 py-1 rounded-lg transition">重設</button>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label for="irr-start-month" class="block text-sm font-medium text-slate-700 mb-1">起始年月</label>
+              <input id="irr-start-month" type="month" value="2015-08" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+            </div>
+            <div>
+    <!-- ==================== FOOTER: 回測工具清單 ==================== -->
+    <section class="mt-10 bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 sm:p-6">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+          </svg>
+          <h2 class="text-base font-bold text-navy-900">回測工具清單</h2>
+        </div>
+        <span class="text-xs text-slate-400">點擊卡片將另開新分頁前往工具</span>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+        <a href="https://tool.yp-finance.com/stockcomparedcals" target="_blank" rel="noopener noreferrer"
+          class="group block rounded-xl border border-slate-200 bg-slate-50/70 p-4 hover:border-emerald-400 hover:bg-emerald-50/40 hover:shadow-sm transition">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-xs font-bold text-emerald-700">01・台股定期定額</span>
+            <svg class="w-4 h-4 text-slate-400 group-hover:text-emerald-600 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </div>
+          <div class="text-sm font-semibold text-navy-900 group-hover:text-emerald-700 transition">台股ETF定期定額回測</div>
+          <p class="text-xs text-slate-500 mt-1">檢視歷史不同進場時間與定期定額紀律報酬表現。</p>
+        </a>
+
+        <a href="https://tool.yp-finance.com/twportfolio/c0089b3f-b45d-4896-80ce-2bc6b39ac797" target="_blank" rel="noopener noreferrer"
+          class="group block rounded-xl border border-slate-200 bg-slate-50/70 p-4 hover:border-emerald-400 hover:bg-emerald-50/40 hover:shadow-sm transition">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-xs font-bold text-emerald-700">02・資產配置</span>
+            <svg class="w-4 h-4 text-slate-400 group-hover:text-emerald-600 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </div>
+          <div class="text-sm font-semibold text-navy-900 group-hover:text-emerald-700 transition">台股投資組合計算器</div>
+          <p class="text-xs text-slate-500 mt-1">自由設定多檔台股 ETF 權重並回測歷史績效與波動。</p>
+        </a>
+
+        <a href="https://tool.yp-finance.com/rollingcompare" target="_blank" rel="noopener noreferrer"
+          class="group block rounded-xl border border-slate-200 bg-slate-50/70 p-4 hover:border-emerald-400 hover:bg-emerald-50/40 hover:shadow-sm transition">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-xs font-bold text-emerald-700">03・台股滾動報酬</span>
+            <svg class="w-4 h-4 text-slate-400 group-hover:text-emerald-600 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </div>
+          <div class="text-sm font-semibold text-navy-900 group-hover:text-emerald-700 transition">台股ETF單筆滾動報酬比較試算</div>
+          <p class="text-xs text-slate-500 mt-1">比較任意持有期間之最高、最低與平均年化報酬。</p>
+        </a>
+
+        <a href="https://tool.yp-finance.com/rollingcompare" target="_blank" rel="noopener noreferrer"
+          class="group block rounded-xl border border-slate-200 bg-slate-50/70 p-4 hover:border-emerald-400 hover:bg-emerald-50/40 hover:shadow-sm transition">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-xs font-bold text-emerald-700">04・美股市場回測</span>
+            <svg class="w-4 h-4 text-slate-400 group-hover:text-emerald-600 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </div>
+          <div class="text-sm font-semibold text-navy-900 group-hover:text-emerald-700 transition">美股單筆/定期定額試算</div>
+          <p class="text-xs text-slate-500 mt-1">追蹤美股大盤指數或 ETF 長期複利與股息再投入績效。</p>
+        </a>
+
+        <a href="https://tool.yp-finance.com/rollingcompare" target="_blank" rel="noopener noreferrer"
+          class="group block rounded-xl border border-slate-200 bg-slate-50/70 p-4 hover:border-emerald-400 hover:bg-emerald-50/40 hover:shadow-sm transition">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-xs font-bold text-emerald-700">05・槓桿與機率模擬</span>
+            <svg class="w-4 h-4 text-slate-400 group-hover:text-emerald-600 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </div>
+          <div class="text-sm font-semibold text-navy-900 group-hover:text-emerald-700 transition">貸款蒙地卡羅計算</div>
+          <p class="text-xs text-slate-500 mt-1">透過隨機路徑模擬評估信貸投資與現金流風險承受度。</p>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="py-5 text-center text-xs text-slate-400 border-t border-slate-200/70 bg-white mt-8">
+    複利與退休理財計算機・試算結果僅供理財規劃參考，實際投資報酬視市場波動而定。
+  </footer>
+
+  <!-- Application Logic -->
+  <script>
+    // =========================================================================
+    // Utility Helpers
+    // =========================================================================
+    const fmtCurrency = (val) => {
+      if (!isFinite(val)) return '—';
+      const rounded = Math.round(val);
+      return (rounded < 0 ? '-$' : '$') + Math.abs(rounded).toLocaleString('zh-TW');
+    };
+
+    const fmtNumber = (val) => {
+      if (!isFinite(val)) return '—';
+      return Math.round(val).toLocaleString('zh-TW');
+    };
+
+    const fmtPercent = (val, digits = 2) => {
+      if (!isFinite(val)) return '—';
+      return val.toFixed(digits) + '%';
+    };
+
+    const charts = {};
+
+    const commonChartOptions = (yLabel = '') => ({
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          position: 'top',
+          labels: { usePointStyle: true, boxWidth: 8, font: { family: 'Inter, Noto Sans TC', size: 12 } },
+        },
+        tooltip: {
+          backgroundColor: 'rgba(11, 25, 51, 0.94)',
+          padding: 10,
+          cornerRadius: 10,
+          callbacks: {
+            label: (ctx) => `${ctx.dataset.label}: ${fmtCurrency(ctx.parsed.y)}`,
+          },
+        },
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { maxTicksLimit: 10, font: { size: 11 } } },
+        y: {
+          grid: { color: 'rgba(148, 163, 184, 0.18)' },
+          ticks: {
+            font: { size: 11 },
+            callback: (val) => {
+              if (Math.abs(val) >= 1e8) return (val / 1e8).toFixed(1) + '億';
+              if (Math.abs(val) >= 1e4) return Math.round(val / 1e4).toLocaleString('zh-TW') + '萬';
+              return val.toLocaleString('zh-TW');
+            },
+          },
+        },
+      },
+    });
+
+    // =========================================================================
+    // Tab Switching Logic
+    // =========================================================================
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabPanels = document.querySelectorAll('.tab-panel');
+
+    tabBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const targetId = btn.dataset.tab;
+        tabBtns.forEach((b) => {
+          b.classList.remove('bg-emerald-500', 'text-white', 'shadow-md', 'shadow-emerald-900/30', 'font-semibold');
+          b.classList.add('text-slate-300', 'hover:text-white', 'hover:bg-white/10', 'font-medium');
+        });
+        btn.classList.add('bg-emerald-500', 'text-white', 'shadow-md', 'shadow-emerald-900/30', 'font-semibold');
+        btn.classList.remove('text-slate-300', 'hover:text-white', 'hover:bg-white/10', 'font-medium');
+
+        tabPanels.forEach((panel) => {
+          panel.classList.toggle('hidden', panel.id !== targetId);
+        });
+
+        // Trigger resize for visible charts to ensure sharp rendering
+        Object.values(charts).forEach((ch) => ch && ch.resize());
+      });
+    });
+
+    // =========================================================================
+    // TAB 1: 退休收入計算機
+    // =========================================================================
+    function calcRetire() {
+      const amountWan = parseFloat(document.getElementById('r-amount').value) || 0;
+      const inflationPct = parseFloat(document.getElementById('r-inflation').value) || 0;
+      const nominalPct = parseFloat(document.getElementById('r-nominal').value) || 0;
+      const retireAge = parseInt(document.getElementById('r-retire-age').value, 10) || 0;
+      const endAge = parseInt(document.getElementById('r-end-age').value, 10) || 0;
+      const errEl = document.getElementById('r-error');
+
+      if (endAge <= retireAge) {
+        errEl.textContent = '預計登出年齡必須大於退休時年齡，請重新調整。';
+        errEl.classList.remove('hidden');
+        document.getElementById('r-pmt').textContent = '—';
+        document.getElementById('r-reserve').textContent = '—';
+        return;
+      }
+      if (inflationPct <= -100) {
+        errEl.textContent = '預期通膨率不可小於或等於 -100%。';
+        errEl.classList.remove('hidden');
+        return;
+      }
+      errEl.classList.add('hidden');
+
+      const inflationRate = inflationPct / 100;
+      const nominalRate = nominalPct / 100;
+      const r_real = (1 + nominalRate) / (1 + inflationRate) - 1;
+      const r_m = r_real / 12;
+      const years = endAge - retireAge;
+      const n = years * 12;
+      const PV = amountWan * 10000;
+
+      const PMT = Math.abs(r_m) < 1e-12
+        ? PV / n
+        : (PV * r_m) / (1 - Math.pow(1 + r_m, -n));
+
+      document.getElementById('r-pmt').textContent = fmtCurrency(PMT);
+      document.getElementById('r-reserve').textContent = fmtCurrency(PMT * 24);
+      document.getElementById('r-real-rate').textContent = fmtPercent(r_real * 100);
+      document.getElementById('r-years').textContent = `${years} 年（${n.toLocaleString('zh-TW')} 期）`;
+      document.getElementById('r-pv').textContent = fmtCurrency(PV);
+
+      // Build yearly remaining real asset curve
+      const labels = [];
+      const data = [];
+      let balance = PV;
+      labels.push(`${retireAge}歲`);
+      data.push(Math.max(0, balance));
+
+      for (let y = 1; y <= years; y++) {
+        for (let m = 0; m < 12; m++) {
+          balance = balance * (1 + r_m) - PMT;
+        }
+        labels.push(`${retireAge + y}歲`);
+        data.push(y === years ? 0 : Math.max(0, balance));
+      }
+
+      const ctx = document.getElementById('retireChart').getContext('2d');
+      if (charts.retire) charts.retire.destroy();
+      charts.retire = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: '實質剩餘資產',
+              data,
+              borderColor: '#10b981',
+              backgroundColor: 'rgba(16, 185, 129, 0.14)',
+              borderWidth: 2.5,
+              fill: true,
+              tension: 0.25,
+              pointRadius: 0,
+              pointHoverRadius: 5,
+            },
+          ],
+        },
+        options: commonChartOptions(),
+      });
+    }
+
+    ['r-amount', 'r-inflation', 'r-nominal', 'r-retire-age', 'r-end-age'].forEach((id) => {
+      document.getElementById(id).addEventListener('input', calcRetire);
+    });
+    document.getElementById('retire-reset').addEventListener('click', () => {
+      document.getElementById('r-amount').value = 500;
+      document.getElementById('r-inflation').value = 3;
+      document.getElementById('r-nominal').value = 15;
+      document.getElementById('r-retire-age').value = 35;
+      document.getElementById('r-end-age').value = 95;
+      calcRetire();
+    });
+
+    // =========================================================================
+    // TAB 2: 定期定額與單筆目標試算
+    // =========================================================================
+    function calcGoal1() {
+      const principal = parseFloat(document.getElementById('g1-principal').value) || 0;
+      const ratePct = parseFloat(document.getElementById('g1-rate').value) || 0;
+      const target = parseFloat(document.getElementById('g1-target').value) || 0;
+      const r = ratePct / 100;
+
+      let goalYear = null;
+      if (principal >= target) {
+        goalYear = 0;
+      } else if (principal > 0 && r > 0) {
+        for (let t = 1; t <= 200; t++) {
+          if (principal * Math.pow(1 + r, t) >= target) {
+            goalYear = t;
+            break;
+          }
+        }
+      }
+
+      const maxDisplayYears = goalYear !== null ? Math.min(Math.max(goalYear + 5, 20), 120) : 65;
+      const labels = [];
+      const balances = [];
+      const rowsHtml = [];
+
+      for (let t = 0; t <= maxDisplayYears; t++) {
+        const bal = principal * Math.pow(1 + r, t);
+        labels.push(`第${t}年`);
+        balances.push(bal);
+        const progress = target > 0 ? Math.min(100, (bal / target) * 100) : 100;
+        const isGoal = goalYear === t;
+        rowsHtml.push(`
+          <tr class="${isGoal ? 'bg-emerald-50 font-bold text-emerald-900' : 'hover:bg-slate-50'}">
+            <td class="px-4 py-2">${t} 年 ${isGoal ? '<span class="ml-1 text-[11px] bg-emerald-600 text-white px-1.5 py-0.5 rounded">達標</span>' : ''}</td>
+            <td class="px-4 py-2 text-right font-mono">${fmtCurrency(bal)}</td>
+            <td class="px-4 py-2 text-right font-mono">${progress.toFixed(1)}%</td>
+          </tr>
+        `);
+      }
+
+      document.getElementById('g1-years').textContent = goalYear !== null ? `${goalYear} 年` : '無法達成（超過 200 年）';
+      document.getElementById('g1-final').textContent =
+        goalYear !== null ? fmtCurrency(principal * Math.pow(1 + r, goalYear)) : '—';
+      document.getElementById('g1-table-note').textContent = `顯示 0 ~ ${maxDisplayYears} 年`;
+      document.getElementById('g1-tbody').innerHTML = rowsHtml.join('');
+
+      const ctx = document.getElementById('goal1Chart').getContext('2d');
+      if (charts.goal1) charts.goal1.destroy();
+      charts.goal1 = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: '累積總資金',
+              data: balances,
+              borderColor: '#0f172a',
+              backgroundColor: 'rgba(15, 23, 42, 0.08)',
+              borderWidth: 2.5,
+              fill: true,
+              tension: 0.25,
+              pointRadius: 0,
+              pointHoverRadius: 5,
+            },
+            {
+              label: '目標金額',
+              data: labels.map(() => target),
+              borderColor: '#10b981',
+              borderDash: [6, 4],
+              borderWidth: 1.8,
+              fill: false,
+              pointRadius: 0,
+            },
+          ],
+        },
+        options: commonChartOptions(),
+      });
+    }
+
+    let g2Expanded = false;
+    function getMilestoneTag(yearlyGain) {
+      if (yearlyGain >= 5000000) return '以下看起來像詐騙，我不想說了🤫';
+      if (yearlyGain >= 4000000) return '躺平資產升值400萬';
+      if (yearlyGain >= 3000000) return '躺平資產升值300萬';
+      if (yearlyGain >= 2000000) return '躺平資產升值200萬';
+      if (yearlyGain >= 1000000) return '複利拐點開始，躺平資產升值100萬🤑';
+      return '';
+    }
+
+    function calcGoal2() {
+      const principal = parseFloat(document.getElementById('g2-principal').value) || 0;
+      const monthly = parseFloat(document.getElementById('g2-monthly').value) || 0;
+      const ratePct = parseFloat(document.getElementById('g2-rate').value) || 0;
+      const target = parseFloat(document.getElementById('g2-target').value) || 0;
+      const r = ratePct / 100;
+      const annualDeposit = monthly * 12;
+
+      const records = [];
+      let prevBal = principal;
+      let totalDep = principal;
+      let goalYear = principal >= target ? 0 : null;
+
+      records.push({
+        year: 0,
+        deposit: 0,
+        yearlyGain: 0,
+        balance: principal,
+        totalDeposit: principal,
+        milestone: '',
+      });
+
+      for (let t = 1; t <= 75; t++) {
+        const yearlyGain = prevBal * r;
+        const balance = prevBal + annualDeposit + yearlyGain;
+        totalDep += annualDeposit;
+        if (goalYear === null && balance >= target) {
+          goalYear = t;
+        }
+        records.push({
+          year: t,
+          deposit: annualDeposit,
+          yearlyGain,
+          balance,
+          totalDeposit: totalDep,
+          milestone: getMilestoneTag(yearlyGain),
+        });
+        prevBal = balance;
+      }
+
+      if (goalYear !== null) {
+        const rec = records[goalYear];
+        document.getElementById('g2-years').textContent = `${goalYear} 年`;
+        document.getElementById('g2-total-deposit').textContent = fmtCurrency(rec.totalDeposit);
+        document.getElementById('g2-total-gain').textContent = fmtCurrency(rec.balance - rec.totalDeposit);
+      } else {
+        const last = records[75];
+        document.getElementById('g2-years').textContent = '超過 75 年';
+        document.getElementById('g2-total-deposit').textContent = fmtCurrency(last.totalDeposit);
+        document.getElementById('g2-total-gain').textContent = fmtCurrency(last.balance - last.totalDeposit);
+      }
+
+      const showCount = g2Expanded ? 75 : Math.min(75, Math.max(goalYear ? goalYear + 5 : 35, 35));
+      document.getElementById('g2-toggle-rows').textContent = g2Expanded
+        ? `收合明細（顯示前 ${Math.min(75, Math.max(goalYear ? goalYear + 5 : 35, 35))} 年）`
+        : '展開全部 75 年';
+
+      const rowsHtml = records.slice(0, showCount + 1).map((rec) => {
+        const isGoal = rec.year === goalYear;
+        return `
+          <tr class="${isGoal ? 'bg-emerald-50 font-bold text-emerald-900' : 'hover:bg-slate-50'}">
+            <td class="px-3 py-2 whitespace-nowrap">${rec.year} 年 ${isGoal ? '<span class="ml-1 text-[10px] bg-emerald-600 text-white px-1.5 py-0.5 rounded">達標</span>' : ''}</td>
+            <td class="px-3 py-2 text-right font-mono">${fmtCurrency(rec.deposit)}</td>
+            <td class="px-3 py-2 text-right font-mono text-emerald-700">${fmtCurrency(rec.yearlyGain)}</td>
+            <td class="px-3 py-2 text-right font-mono font-semibold">${fmtCurrency(rec.balance)}</td>
+            <td class="px-3 py-2 text-xs ${rec.milestone ? 'text-amber-700 font-semibold' : 'text-slate-300'}">${rec.milestone || '—'}</td>
+          </tr>
+        `;
+      });
+      document.getElementById('g2-tbody').innerHTML = rowsHtml.join('');
+
+      const chartSlice = records.slice(0, showCount + 1);
+      const ctx = document.getElementById('goal2Chart').getContext('2d');
+      if (charts.goal2) charts.goal2.destroy();
+      charts.goal2 = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: chartSlice.map((r) => `第${r.year}年`),
+          datasets: [
+            {
+              label: '累積身價',
+              data: chartSlice.map((r) => r.balance),
+              borderColor: '#10b981',
+              backgroundColor: 'rgba(16, 185, 129, 0.16)',
+              borderWidth: 2.5,
+              fill: true,
+              tension: 0.25,
+              pointRadius: 0,
+              pointHoverRadius: 5,
+            },
+            {
+              label: '累積投入本金',
+              data: chartSlice.map((r) => r.totalDeposit),
+              borderColor: '#1e3a8a',
+              backgroundColor: 'rgba(30, 58, 138, 0.12)',
+              borderWidth: 2,
+              fill: true,
+              tension: 0.1,
+              pointRadius: 0,
+              pointHoverRadius: 4,
+            },
+          ],
+        },
+        options: commonChartOptions(),
+      });
+    }
+
+    ['g1-principal', 'g1-rate', 'g1-target'].forEach((id) => document.getElementById(id).addEventListener('input', calcGoal1));
+    document.getElementById('g1-reset').addEventListener('click', () => {
+      document.getElementById('g1-principal').value = 1000000;
+      document.getElementById('g1-rate').value = 5;
+      document.getElementById('g1-target').value = 20000000;
+      calcGoal1();
+    });
+
+    ['g2-principal', 'g2-monthly', 'g2-rate', 'g2-target'].forEach((id) => document.getElementById(id).addEventListener('input', calcGoal2));
+    document.getElementById('g2-reset').addEventListener('click', () => {
+      document.getElementById('g2-principal').value = 0;
+      document.getElementById('g2-monthly').value = 10000;
+      document.getElementById('g2-rate').value = 6;
+      document.getElementById('g2-target').value = 10000000;
+      calcGoal2();
+    });
+    document.getElementById('g2-toggle-rows').addEventListener('click', () => {
+      g2Expanded = !g2Expanded;
+      calcGoal2();
+    });
+
+    // =========================================================================
+    // TAB 3: 投資策略 PK（保羅 vs 阿良 vs 丕歪）
+    // =========================================================================
+    const pkScenarios = {
+      1: {
+        p: { init: 15000, mode: 'dca', start: 25, end: 34, amount: 180000 },
+        a: { init: 0, mode: 'dca', start: 35, end: 65, amount: 180000 },
+        py: { enabled: false, init: 0, mode: 'lump', start: 25, end: 25, amount: 1250000 },
+      },
+      2: {
+        p: { init: 15000, mode: 'dca', start: 25, end: 34, amount: 180000 },
+        a: { init: 0, mode: 'dca', start: 35, end: 65, amount: 336000 },
+        py: { enabled: false, init: 0, mode: 'lump', start: 25, end: 25, amount: 1250000 },
+      },
+      3: {
+        p: { init: 15000, mode: 'dca', start: 25, end: 34, amount: 180000 },
+        a: { init: 0, mode: 'lump', start: 35, end: 35, amount: 3200000 },
+        py: { enabled: false, init: 0, mode: 'lump', start: 25, end: 25, amount: 1250000 },
+      },
+      4: {
+        p: { init: 15000, mode: 'dca', start: 25, end: 34, amount: 180000 },
+        a: { init: 0, mode: 'lump', start: 35, end: 35, amount: 3200000 },
+        py: { enabled: true, init: 0, mode: 'lump', start: 25, end: 25, amount: 1250000 },
+      },
+    };
+
+    function applyScenario(id) {
+      const s = pkScenarios[id];
+      document.getElementById('p-init').value = s.p.init;
+      document.getElementById('p-mode').value = s.p.mode;
+      document.getElementById('p-start').value = s.p.start;
+      document.getElementById('p-end').value = s.p.end;
+      document.getElementById('p-amount').value = s.p.amount;
+
+      document.getElementById('a-init').value = s.a.init;
+      document.getElementById('a-mode').value = s.a.mode;
+      document.getElementById('a-start').value = s.a.start;
+      document.getElementById('a-end').value = s.a.end;
+      document.getElementById('a-amount').value = s.a.amount;
+
+      document.getElementById('py-enabled').checked = s.py.enabled;
+      document.getElementById('py-init').value = s.py.init;
+      document.getElementById('py-mode').value = s.py.mode;
+      document.getElementById('py-start').value = s.py.start;
+      document.getElementById('py-end').value = s.py.end;
+      document.getElementById('py-amount').value = s.py.amount;
+
+      document.querySelectorAll('.pk-scenario-btn').forEach((btn) => {
+        const active = btn.dataset.scenario === String(id);
+        btn.classList.toggle('border-2', active);
+        btn.classList.toggle('border-emerald-500', active);
+        btn.classList.toggle('bg-emerald-50/70', active);
+        btn.classList.toggle('border', !active);
+        btn.classList.toggle('border-slate-200', !active);
+        btn.classList.toggle('bg-white', !active);
+      });
+
+      calcPK();
+    }
+
+    function simulatePerson(cfg, r) {
+      const rows = [];
+      let prevBal = cfg.init;
+      let totalPrincipal = cfg.init;
+      for (let age = 25; age <= 65; age++) {
+        let deposit = 0;
+        if (cfg.mode === 'lump') {
+          deposit = age === cfg.start ? cfg.amount : 0;
+        } else {
+          deposit = age >= cfg.start && age <= cfg.end ? cfg.amount : 0;
+        }
+        const balance = prevBal * (1 + r) + deposit;
+        totalPrincipal += deposit;
+        rows.push({ age, deposit, balance, totalPrincipal });
+        prevBal = balance;
+      }
+      return rows;
+    }
+
+    function calcPK() {
+      const r = (parseFloat(document.getElementById('pk-rate').value) || 0) / 100;
+      const targetAge = Math.min(65, Math.max(25, parseInt(document.getElementById('pk-target-age').value, 10) || 65));
+      const pyEnabled = document.getElementById('py-enabled').checked;
+
+      // Sync end age visibility for lump mode & dim disabled card
+      document.getElementById('py-card').classList.toggle('opacity-55', !pyEnabled);
+      ['p', 'a', 'py'].forEach((prefix) => {
+        const isLump = document.getElementById(`${prefix}-mode`).value === 'lump';
+        const endInput = document.getElementById(`${prefix}-end`);
+        endInput.disabled = isLump;
+        endInput.classList.toggle('bg-slate-100', isLump);
+        endInput.classList.toggle('text-slate-400', isLump);
+      });
+
+      const readCfg = (prefix) => ({
+        init: parseFloat(document.getElementById(`${prefix}-init`).value) || 0,
+        mode: document.getElementById(`${prefix}-mode`).value,
+        start: parseInt(document.getElementById(`${prefix}-start`).value, 10) || 25,
+        end: parseInt(document.getElementById(`${prefix}-end`).value, 10) || 65,
+        amount: parseFloat(document.getElementById(`${prefix}-amount`).value) || 0,
+      });
+
+      const paul = simulatePerson(readCfg('p'), r);
+      const aliang = simulatePerson(readCfg('a'), r);
+      const piwai = pyEnabled ? simulatePerson(readCfg('py'), r) : null;
+
+      const idx = targetAge - 25;
+      const players = [
+        { name: '保羅', color: 'blue', hex: '#2563eb', row: paul[idx] },
+        { name: '阿良', color: 'emerald', hex: '#10b981', row: aliang[idx] },
+      ];
+      if (pyEnabled) {
+        players.push({ name: '丕歪', color: 'amber', hex: '#f59e0b', row: piwai[idx] });
+      }
+
+      // Winner determination
+      const maxBal = Math.max(...players.map((pl) => pl.row.balance));
+      const kpiGrid = document.getElementById('pk-kpi-grid');
+      kpiGrid.className = `grid grid-cols-1 ${pyEnabled ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-4`;
+      kpiGrid.innerHTML = players
+        .map((pl) => {
+          const mult = pl.row.totalPrincipal > 0 ? pl.row.balance / pl.row.totalPrincipal : 0;
+          const isWinner = pl.row.balance === maxBal && maxBal > 0;
+          return `
+            <div class="bg-white rounded-2xl p-5 shadow-sm border ${isWinner ? 'border-emerald-400 ring-2 ring-emerald-100' : 'border-slate-200/80'}">
+              <div class="flex items-center justify-between mb-2">
+                <span class="font-bold text-navy-900 flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-full" style="background:${pl.hex}"></span>
+                  ${pl.name}（${targetAge} 歲）
+                </span>
+                ${isWinner ? '<span class="text-xs font-bold bg-emerald-100 text-emerald-700 px-2.5 py-0.5 rounded-full">🏆 身價領先</span>' : ''}
+              </div>
+              <p class="text-2xl sm:text-3xl font-extrabold text-navy-900 tracking-tight">${fmtCurrency(pl.row.balance)}</p>
+              <div class="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-slate-100 text-xs">
+                <div>
+                  <span class="text-slate-400 block">總投入本金</span>
+                  <span class="font-bold text-slate-700">${fmtCurrency(pl.row.totalPrincipal)}</span>
+                </div>
+                <div>
+                  <span class="text-slate-400 block">資產倍數</span>
+                  <span class="font-bold text-emerald-600">${mult.toFixed(2)} 倍</span>
+                </div>
+              </div>
+            </div>
+          `;
+        })
+        .join('');
+
+      // Chart
+      const labels = paul.map((r) => `${r.age}歲`);
+      const datasets = [
+        {
+          label: '保羅累積身價',
+          data: paul.map((r) => r.balance),
+          borderColor: '#2563eb',
+          backgroundColor: 'rgba(37, 99, 235, 0.08)',
+          borderWidth: 2.5,
+          tension: 0.25,
+          pointRadius: 0,
+          pointHoverRadius: 5,
+        },
+        {
+          label: '阿良累積身價',
+          data: aliang.map((r) => r.balance),
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16, 185, 129, 0.08)',
+          borderWidth: 2.5,
+          tension: 0.25,
+          pointRadius: 0,
+          pointHoverRadius: 5,
+        },
+      ];
+      if (pyEnabled) {
+        datasets.push({
+          label: '丕歪累積身價',
+          data: piwai.map((r) => r.balance),
+          borderColor: '#f59e0b',
+          backgroundColor: 'rgba(245, 158, 11, 0.08)',
+          borderWidth: 2.5,
+          tension: 0.25,
+          pointRadius: 0,
+          pointHoverRadius: 5,
+        });
+      }
+
+      const ctx = document.getElementById('pkChart').getContext('2d');
+      if (charts.pk) charts.pk.destroy();
+      charts.pk = new Chart(ctx, {
+        type: 'line',
+        data: { labels, datasets },
+        options: commonChartOptions(),
+      });
+
+      // Table
+      document.getElementById('pk-thead').innerHTML = `
+        <tr>
+          <th class="px-3 py-2.5">年齡</th>
+          <th class="px-3 py-2.5 text-right text-blue-700">保羅當年存款</th>
+          <th class="px-3 py-2.5 text-right text-blue-700">保羅累積身價</th>
+          <th class="px-3 py-2.5 text-right text-emerald-700">阿良當年存款</th>
+          <th class="px-3 py-2.5 text-right text-emerald-700">阿良累積身價</th>
+          ${pyEnabled ? '<th class="px-3 py-2.5 text-right text-amber-700">丕歪當年存款</th><th class="px-3 py-2.5 text-right text-amber-700">丕歪累積身價</th>' : ''}
+        </tr>
+      `;
+
+      document.getElementById('pk-tbody').innerHTML = paul
+        .map((pRow, i) => {
+          const aRow = aliang[i];
+          const pyRow = pyEnabled ? piwai[i] : null;
+          const isTarget = pRow.age === targetAge;
+          return `
+            <tr class="${isTarget ? 'bg-emerald-50 font-bold' : 'hover:bg-slate-50'}">
+              <td class="px-3 py-2">${pRow.age} 歲</td>
+              <td class="px-3 py-2 text-right font-mono text-slate-600">${fmtCurrency(pRow.deposit)}</td>
+              <td class="px-3 py-2 text-right font-mono font-semibold text-blue-900">${fmtCurrency(pRow.balance)}</td>
+              <td class="px-3 py-2 text-right font-mono text-slate-600">${fmtCurrency(aRow.deposit)}</td>
+              <td class="px-3 py-2 text-right font-mono font-semibold text-emerald-900">${fmtCurrency(aRow.balance)}</td>
+              ${pyEnabled ? `<td class="px-3 py-2 text-right font-mono text-slate-600">${fmtCurrency(pyRow.deposit)}</td><td class="px-3 py-2 text-right font-mono font-semibold text-amber-900">${fmtCurrency(pyRow.balance)}</td>` : ''}
+            </tr>
+          `;
+        })
+        .join('');
+    }
+
+    document.querySelectorAll('.pk-scenario-btn').forEach((btn) => {
+      btn.addEventListener('click', () => applyScenario(btn.dataset.scenario));
+    });
+    [
+      'pk-rate', 'pk-target-age',
+      'p-init', 'p-mode', 'p-start', 'p-end', 'p-amount',
+      'a-init', 'a-mode', 'a-start', 'a-end', 'a-amount',
+      'py-enabled', 'py-init', 'py-mode', 'py-start', 'py-end', 'py-amount',
+    ].forEach((id) => {
+      document.getElementById(id).addEventListener('input', calcPK);
+      document.getElementById(id).addEventListener('change', calcPK);
+    });
+
+    // =========================================================================
+    // TAB 4: 單筆複利試算表（50 年逐年可調利率）
+    // =========================================================================
+    let customYearRates = Array(50).fill(21.5);
+    let hasCustomRates = false;
+
+    function buildLumpTable() {
+      const principal = parseFloat(document.getElementById('l-principal').value) || 0;
+      const targetYears = Math.min(50, Math.max(1, parseInt(document.getElementById('l-years').value, 10) || 1));
+
+      let startBal = principal;
+      const labels = ['期初'];
+      const balances = [principal];
+      const pointRadii = [0];
+      const rowsHtml = [];
+      let targetEndBal = principal;
+
+      for (let y = 1; y <= 50; y++) {
+        const ratePct = customYearRates[y - 1];
+        const interest = startBal * (ratePct / 100);
+        const endBal = startBal + interest;
+        if (y === targetYears) targetEndBal = endBal;
+
+        labels.push(`第${y}年`);
+        balances.push(endBal);
+        pointRadii.push(y === targetYears ? 6 : 0);
+
+        const isTarget = y === targetYears;
+        rowsHtml.push(`
+          <tr class="${isTarget ? 'bg-emerald-50 font-bold text-emerald-950' : 'hover:bg-slate-50'}">
+            <td class="px-4 py-2 whitespace-nowrap">
+              第 ${y} 年 ${isTarget ? '<span class="ml-1 text-[10px] bg-emerald-600 text-white px-1.5 py-0.5 rounded">目標期間</span>' : ''}
+            </td>
+            <td class="px-4 py-2 text-right font-mono">${fmtCurrency(startBal)}</td>
+            <td class="px-4 py-1.5 text-center">
+              <div class="inline-flex items-center gap-1">
+                <input type="number" step="0.1" value="${ratePct}" data-year-idx="${y - 1}"
+                  class="lump-row-rate w-20 text-right rounded-lg border border-slate-300 px-2 py-1 text-xs font-semibold text-navy-900 bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+                <span class="text-xs text-slate-400">%</span>
+              </div>
+            </td>
+            <td class="px-4 py-2 text-right font-mono ${interest >= 0 ? 'text-emerald-700' : 'text-rose-600'}">${fmtCurrency(interest)}</td>
+            <td class="px-4 py-2 text-right font-mono font-semibold">${fmtCurrency(endBal)}</td>
+          </tr>
+        `);
+        startBal = endBal;
+      }
+
+      document.getElementById('l-years-label').textContent = targetYears;
+      document.getElementById('l-fv').textContent = fmtCurrency(targetEndBal);
+      const mult = principal > 0 ? targetEndBal / principal : 0;
+      document.getElementById('l-multiple').textContent = `${mult.toFixed(2)} 倍`;
+      document.getElementById('l-custom-badge').classList.toggle('hidden', !hasCustomRates);
+      document.getElementById('l-tbody').innerHTML = rowsHtml.join('');
+
+      // Attach listeners to individual row rate inputs
+      document.querySelectorAll('.lump-row-rate').forEach((input) => {
+        input.addEventListener('change', (e) => {
+          const idx = parseInt(e.target.dataset.yearIdx, 10);
+          customYearRates[idx] = parseFloat(e.target.value) || 0;
+          hasCustomRates = true;
+          buildLumpTable();
+        });
+      });
+
+      // Chart
+      const ctx = document.getElementById('lumpChart').getContext('2d');
+      if (charts.lump) charts.lump.destroy();
+      charts.lump = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: '期末累積金額',
+              data: balances,
+              borderColor: '#0f172a',
+              backgroundColor: 'rgba(16, 185, 129, 0.14)',
+              borderWidth: 2.5,
+              fill: true,
+              tension: 0.25,
+              pointRadius: pointRadii,
+              pointBackgroundColor: '#10b981',
+              pointBorderColor: '#ffffff',
+              pointBorderWidth: 2,
+              pointHoverRadius: 6,
+            },
+          ],
+        },
+        options: commonChartOptions(),
+      });
+    }
+
+    document.getElementById('l-principal').addEventListener('input', buildLumpTable);
+    document.getElementById('l-years').addEventListener('input', buildLumpTable);
+    document.getElementById('l-rate').addEventListener('input', () => {
+      const uniform = parseFloat(document.getElementById('l-rate').value) || 0;
+      customYearRates = Array(50).fill(uniform);
+      hasCustomRates = false;
+      buildLumpTable();
+    });
+    document.getElementById('l-reset-rates').addEventListener('click', () => {
+      const uniform = parseFloat(document.getElementById('l-rate').value) || 0;
+      customYearRates = Array(50).fill(uniform);
+      hasCustomRates = false;
+      buildLumpTable();
+    });
+    document.getElementById('lump-reset-all').addEventListener('click', () => {
+      document.getElementById('l-principal').value = 5000000;
+      document.getElementById('l-years').value = 19;
+      document.getElementById('l-rate').value = 21.5;
+      customYearRates = Array(50).fill(21.5);
+      hasCustomRates = false;
+      buildLumpTable();
+    });
+
+    // =========================================================================
+    // TAB 5: 年化報酬率反推（CAGR / IRR）
+    // =========================================================================
+    function calcCAGR() {
+      const start = parseFloat(document.getElementById('cagr-start').value);
+      const end = parseFloat(document.getElementById('cagr-end').value);
+      const years = parseFloat(document.getElementById('cagr-years').value);
+      const errEl = document.getElementById('cagr-error');
+
+      if (!start || start <= 0 || isNaN(end) || end < 0 || !years || years <= 0) {
+        errEl.textContent = '請輸入有效的正數期初金額、非負期末金額與投資年數。';
+        errEl.classList.remove('hidden');
+        document.getElementById('cagr-result').textContent = '—';
+        return;
+      }
+      errEl.classList.add('hidden');
+
+      const cagr = (Math.pow(end / start, 1 / years) - 1) * 100;
+      const totalRate = ((end - start) / start) * 100;
+      const profit = end - start;
+
+      document.getElementById('cagr-result').textContent = fmtPercent(cagr, 2);
+      document.getElementById('cagr-total-rate').textContent = `${totalRate >= 0 ? '+' : ''}${fmtPercent(totalRate, 2)}`;
+      document.getElementById('cagr-profit').textContent = fmtCurrency(profit);
+    }
+
+    function solveMonthlyRateBisection(pmt, n, targetFv) {
+      const fvAt = (r) => {
+        if (Math.abs(r) < 1e-12) return pmt * n;
+        return pmt * ((Math.pow(1 + r, n) - 1) / r);
+      };
+
+      let low = -0.9999;
+      let high = 1.0;
+      // Dynamically expand upper bound if targetFv is very high
+      while (fvAt(high) < targetFv && high < 100) {
+        high *= 2;
+      }
+
+      for (let i = 0; i < 120; i++) {
+        const mid = (low + high) / 2;
+        const val = fvAt(mid);
+        if (val < targetFv) {
+          low = mid;
+        } else {
+          high = mid;
+        }
+      }
+      return (low + high) / 2;
+    }
+
+    function calcIRR() {
+      const startStr = document.getElementById('irr-start-month').value;
+      const endStr = document.getElementById('irr-end-month').value;
+      const pmt = parseFloat(document.getElementById('irr-monthly').value);
+      const fv = parseFloat(document.getElementById('irr-fv').value);
+      const errEl = document.getElementById('irr-error');
+
+      if (!startStr || !endStr) {
+        errEl.textContent = '請選擇有效的起始與結束年月。';
+        errEl.classList.remove('hidden');
+        return;
+      }
+
+      const [sYear, sMonth] = startStr.split('-').map(Number);
+      const [eYear, eMonth] = endStr.split('-').map(Number);
+      const months = (eYear - sYear) * 12 + (eMonth - sMonth);
+
+      if (months <= 0 || !pmt || pmt <= 0 || !fv || fv <= 0) {
+        errEl.textContent = '結束年月須晚於起始年月，且每月投資金額與終值須大於 0。';
+        errEl.classList.remove('hidden');
+        document.getElementById('irr-result').textContent = '—';
+        return;
+      }
+      errEl.classList.add('hidden');
+
+      const totalPrincipal = pmt * months;
+      const totalRate = ((fv - totalPrincipal) / totalPrincipal) * 100;
+      document.getElementById('irr-months').textContent = `${months.toLocaleString('zh-TW')} 個月`;
+      document.getElementById('irr-principal').textContent = fmtCurrency(totalPrincipal);
+      document.getElementById('irr-total-rate').textContent = `${totalRate >= 0 ? '+' : ''}${fmtPercent(totalRate, 2)}`;
+
+      if (months === 1) {
+        document.getElementById('irr-result').textContent = '0.00%';
+        return;
+      }
+
+      const r_m = solveMonthlyRateBisection(pmt, months, fv);
+      const annualRate = (Math.pow(1 + r_m, 12) - 1) * 100;
+      document.getElementById('irr-result').textContent = fmtPercent(annualRate, 2);
+    }
+
+    ['cagr-start', 'cagr-end', 'cagr-years'].forEach((id) => document.getElementById(id).addEventListener('input', calcCAGR));
+    document.getElementById('cagr-reset').addEventListener('click', () => {
+      document.getElementById('cagr-start').value = 1000000;
+      document.getElementById('cagr-end').value = 3850000;
+      document.getElementById('cagr-years').value = 15;
+      calcCAGR();
+    });
+
+    ['irr-start-month', 'irr-end-month', 'irr-monthly', 'irr-fv'].forEach((id) => {
+      document.getElementById(id).addEventListener('input', calcIRR);
+      document.getElementById(id).addEventListener('change', calcIRR);
+    });
+    document.getElementById('irr-reset').addEventListener('click', () => {
+      document.getElementById('irr-start-month').value = '2015-08';
+      document.getElementById('irr-end-month').value = '2022-12';
+      document.getElementById('irr-monthly').value = 10000;
+      document.getElementById('irr-fv').value = 1022909;
+      calcIRR();
+    });
+
+    // =========================================================================
+    // Initialize All Modules on Load
+    // =========================================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      calcRetire();
+      calcGoal1();
+      calcGoal2();
+      applyScenario(1);
+      buildLumpTable();
+      calcCAGR();
+      calcIRR();
+    });
+  </script>
+</body>
+</html>
